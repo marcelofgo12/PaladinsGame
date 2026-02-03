@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Board Game</title>
+<style>
+body{
+    background:#2c1c12;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+#game{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+#board{
+    display:grid;
+    grid-template-columns:repeat(3,100px);
+    gap:5px;
+    margin:20px;
+}
+.cell{
+    width:100px;
+    height:100px;
+    background:#9c6b3f;
+    border:2px solid #4b2e12;
+}
+.card{
+    width:100px;
+    height:100px;
+    border:2px solid black;
+    position:relative;
+}
+.player{background:#5b7fa8;}
+.ai{background:#a85b5b;}
+.hidden{
+    background:#333;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+}
+.num{
+    position:absolute;
+    font-weight:bold;
+}
+.top{top:2px;left:45px;}
+.bottom{bottom:2px;left:45px;}
+.left{left:2px;top:45px;}
+.right{right:2px;top:45px;}
+
+.hand{
+    display:flex;
+    gap:5px;
+    justify-content:center;
+}
+
+/* POPUP */
+#modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+#modalContent{
+    background:#3b2b1a;
+    border:3px solid gold;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 0 20px black;
+}
+#modalContent h2{
+    margin:0 0 15px 0;
+}
+button{
+    padding:8px 15px;
+    margin-top:10px;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>Quadro de Batalha</h2>
+
+<div id="game">
+<div id="aiHand" class="hand"></div>
+<div id="board"></div>
+<div id="playerHand" class="hand"></div>
+<button onclick="restart()">Reiniciar</button>
+</div>
+
+<div id="modal">
+  <div id="modalContent">
+    <h2 id="modalText"></h2>
+    <button onclick="restart()">Jogar novamente</button>
+  </div>
+</div>
+
+<script>
+const board=document.getElementById("board");
+const playerHand=document.getElementById("playerHand");
+const aiHand=document.getElementById("aiHand");
+const modal=document.getElementById("modal");
+const modalText=document.getElementById("modalText");
+
+let cells=[];
+let playerCards=[];
+let aiCards=[];
+let turn="player";
+
+function randCard(owner){
+    return {
+        top:Math.ceil(Math.random()*5),
+        right:Math.ceil(Math.random()*5),
+        bottom:Math.ceil(Math.random()*5),
+        left:Math.ceil(Math.random()*5),
+        owner
+    };
+}
+
+function renderCard(el, card, hidden=false){
+    el.innerHTML="";
+    if(hidden){
+        el.classList.add("hidden");
+        el.innerHTML="🛡";
+    }else{
+        el.classList.remove("hidden");
+        el.innerHTML=`
+        <div class="num top">${card.top}</div>
+        <div class="num right">${card.right}</div>
+        <div class="num bottom">${card.bottom}</div>
+        <div class="num left">${card.left}</div>`;
+    }
+}
+
+function makeCard(c, hidden=false){
+    let d=document.createElement("div");
+    d.className="card "+c.owner;
+    d.dataset.data=JSON.stringify(c);
+    renderCard(d,c,hidden);
+
+    if(c.owner==="player"){
+        d.draggable=true;
+        d.ondragstart=e=>e.dataTransfer.setData("id",d.id);
+    }
+    return d;
+}
+
+function createBoard(){
+    board.innerHTML="";
+    cells=[];
+    for(let i=0;i<9;i++){
+        let c=document.createElement("div");
+        c.className="cell";
+        c.ondragover=e=>e.preventDefault();
+        c.ondrop=e=>drop(e,c);
+        board.appendChild(c);
+        cells.push(c);
+    }
+}
+
+function drop(e,cell){
+    if(turn!=="player")return;
+    if(cell.firstChild)return;
+
+    let card=document.getElementById(e.dataTransfer.getData("id"));
+    card.draggable=false;
+    card.ondragstart=null;
+    cell.appendChild(card);
+
+    resolveBattle(cell,card);
+
+    checkEnd(); // <<< AQUI ESTÁ A CORREÇÃO
+
+    if(turn==="end") return;
+
+    turn="ai";
+    setTimeout(aiPlay,600);
+}
+
+
+function resolveBattle(cell,cardEl){
+    let idx=cells.indexOf(cell);
+    let x=idx%3,y=Math.floor(idx/3);
+    let c=JSON.parse(cardEl.dataset.data);
+
+    function fight(nei,side,op){
+        if(!nei.firstChild)return;
+        let otherEl=nei.firstChild;
+        let o=JSON.parse(otherEl.dataset.data);
+
+        if(c[side]>o[op]){
+            o.owner=c.owner;
+            otherEl.className="card "+o.owner;
+            otherEl.dataset.data=JSON.stringify(o);
+            renderCard(otherEl,o,false);
+        }
+    }
+
+    if(x>0)fight(cells[idx-1],"left","right");
+    if(x<2)fight(cells[idx+1],"right","left");
+    if(y>0)fight(cells[idx-3],"top","bottom");
+    if(y<2)fight(cells[idx+3],"bottom","top");
+}
+
+function aiPlay(){
+    if(aiCards.length===0)return;
+
+    let bestMove=null;
+
+    aiCards.forEach((card,ci)=>{
+        cells.forEach(cell=>{
+            if(cell.firstChild)return;
+            let idx=cells.indexOf(cell);
+            let x=idx%3,y=Math.floor(idx/3);
+            let score=0;
+
+            function test(nei,side,op){
+                if(!nei.firstChild)return;
+                let o=JSON.parse(nei.firstChild.dataset.data);
+                if(card[side]>o[op] && o.owner==="player") score++;
+            }
+
+            if(x>0)test(cells[idx-1],"left","right");
+            if(x<2)test(cells[idx+1],"right","left");
+            if(y>0)test(cells[idx-3],"top","bottom");
+            if(y<2)test(cells[idx+3],"bottom","top");
+
+            if(score>0 && (!bestMove || score>bestMove.score)){
+                bestMove={cardIndex:ci,cell,score};
+            }
+        });
+    });
+
+    let move;
+    if(bestMove){
+        move=bestMove;
+    }else{
+        let empty=cells.filter(c=>!c.firstChild);
+        move={cardIndex:0,cell:empty[Math.floor(Math.random()*empty.length)]};
+    }
+
+    let cardData=aiCards[move.cardIndex];
+    let cardEl=makeCard(cardData,false);
+    cardEl.draggable=false;
+    move.cell.appendChild(cardEl);
+    resolveBattle(move.cell,cardEl);
+
+    aiCards.splice(move.cardIndex,1);
+    aiHand.removeChild(aiHand.children[move.cardIndex]);
+
+    turn="player";
+    checkEnd();
+}
+
+function deal(){
+    playerCards=[];
+    aiCards=[];
+    playerHand.innerHTML="";
+    aiHand.innerHTML="";
+
+    for(let i=0;i<5;i++){
+        playerCards.push(randCard("player"));
+        aiCards.push(randCard("ai"));
+    }
+
+    playerCards.forEach((c,i)=>{
+        let d=makeCard(c,false);
+        d.id="p"+i;
+        playerHand.appendChild(d);
+    });
+
+    aiCards.forEach((c,i)=>{
+        let d=makeCard(c,true);
+        aiHand.appendChild(d);
+    });
+}
+
+function checkEnd(){
+    if(cells.every(c=>c.firstChild)){
+        let p=0,a=0;
+        cells.forEach(c=>{
+            let d=JSON.parse(c.firstChild.dataset.data);
+            d.owner==="player"?p++:a++;
+        });
+
+        if(p>a) showModal("🏆 Você venceu!");
+        else if(a>p) showModal("💀 Você perdeu!");
+        else showModal("⚖ Empate!");
+        turn="end";
+    }
+}
+
+function showModal(text){
+    modalText.innerText=text;
+    modal.style.display="flex";
+}
+
+function restart(){
+    modal.style.display="none";
+    createBoard();
+    deal();
+
+    // Cara ou coroa
+    turn = Math.random() < 0.5 ? "player" : "ai";
+
+    if(turn === "ai"){
+        setTimeout(aiPlay, 600);
+    }
+}
+
+restart();
+</script>
+</body>
+</html>
