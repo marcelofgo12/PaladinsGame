@@ -2,318 +2,1298 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<title>Board Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quadro de Batalha: Edição Suprema</title>
 <style>
-body{
-    background:#2c1c12;
-    color:white;
-    font-family:Arial;
-    text-align:center;
-}
-#game{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-}
-#board{
-    display:grid;
-    grid-template-columns:repeat(3,100px);
-    gap:5px;
-    margin:20px;
-}
-.cell{
-    width:100px;
-    height:100px;
-    background:#9c6b3f;
-    border:2px solid #4b2e12;
-}
-.card{
-    width:100px;
-    height:100px;
-    border:2px solid black;
-    position:relative;
-}
-.player{background:#5b7fa8;}
-.ai{background:#a85b5b;}
-.hidden{
-    background:#333;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:24px;
-}
-.num{
-    position:absolute;
-    font-weight:bold;
-}
-.top{top:2px;left:45px;}
-.bottom{bottom:2px;left:45px;}
-.left{left:2px;top:45px;}
-.right{right:2px;top:45px;}
-
-.hand{
-    display:flex;
-    gap:5px;
-    justify-content:center;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* POPUP */
-#modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.7);
-    display:none;
-    align-items:center;
-    justify-content:center;
+body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
 }
-#modalContent{
-    background:#3b2b1a;
-    border:3px solid gold;
-    padding:30px;
-    border-radius:12px;
-    box-shadow:0 0 20px black;
+
+h1 {
+    margin: 5px 0;
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+    font-size: 1.8em;
 }
-#modalContent h2{
-    margin:0 0 15px 0;
+
+/* CONTAINER DO JOGO COM DIAGRAMA LATERAL */
+#gameContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    max-height: calc(100vh - 120px);
+    overflow: hidden;
+    width: 100%;
+    position: relative;
 }
-button{
-    padding:8px 15px;
-    margin-top:10px;
-    cursor:pointer;
+
+#gameArea {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+    z-index: 1;
+}
+
+#gameInfo {
+    display: flex;
+    gap: 20px;
+    margin: 0;
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    font-size: 1em;
+    align-self: center;
+}
+
+/* DIAGRAMA CIRCULAR DE ELEMENTOS - POSIÇÃO ABSOLUTA */
+#elementCircle {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 240px;
+    height: 240px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.arrow-path {
+    animation: arrowFlow 2s infinite;
+}
+
+@keyframes arrowFlow {
+    0%, 100% { 
+        opacity: 0.6;
+        stroke-width: 3;
+    }
+    50% { 
+        opacity: 1;
+        stroke-width: 4;
+    }
+}
+
+.circle-element {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 12px;
+    border-radius: 50%;
+    border: 4px solid;
+    background: rgba(0,0,0,0.9);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    width: 75px;
+    height: 75px;
+}
+
+.circle-element:hover {
+    transform: scale(1.2);
+    filter: brightness(1.4);
+}
+
+.fire-node {
+    border-color: #ff4444;
+    box-shadow: 0 0 25px rgba(255,68,68,0.8);
+    background: radial-gradient(circle, rgba(255,68,68,0.3) 0%, rgba(0,0,0,0.9) 70%);
+}
+
+.earth-node {
+    border-color: #44ff44;
+    box-shadow: 0 0 25px rgba(68,255,68,0.8);
+    background: radial-gradient(circle, rgba(68,255,68,0.3) 0%, rgba(0,0,0,0.9) 70%);
+}
+
+.water-node {
+    border-color: #4444ff;
+    box-shadow: 0 0 25px rgba(68,68,255,0.8);
+    background: radial-gradient(circle, rgba(68,68,255,0.3) 0%, rgba(0,0,0,0.9) 70%);
+}
+
+.element-icon-circle {
+    font-size: 2.2em;
+    line-height: 1;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+.element-label {
+    font-size: 0.75em;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+    #elementCircle {
+        position: relative;
+        left: auto;
+        top: auto;
+        transform: none;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 20px auto;
+    }
+    
+    #elementCircle svg {
+        width: 200px !important;
+        height: 200px !important;
+    }
+    
+    #gameContainer {
+        flex-direction: column;
+    }
+    
+    .circle-element {
+        width: 60px;
+        height: 60px;
+        padding: 10px;
+    }
+    
+    .element-icon-circle {
+        font-size: 1.8em;
+    }
+}
+
+@media (max-width: 800px) {
+    #elementCircle {
+        width: 180px;
+        height: 180px;
+    }
+    
+    #elementCircle svg {
+        width: 180px !important;
+        height: 180px !important;
+    }
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    gap: 6px;
+    margin: 10px;
+    padding: 15px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+
+.cell {
+    width: 100px;
+    height: 100px;
+    background: #4a4a4a;
+    border: 3px solid #2a2a2a;
+    border-radius: 10px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.cell:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255,215,0,0.3);
+}
+
+.cell.special-terrain {
+    background: radial-gradient(circle, #5a4a8a 0%, #4a4a4a 100%);
+    border-color: #8a6aaa;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(138,106,170,0.5); }
+    50% { box-shadow: 0 0 20px rgba(138,106,170,0.8); }
+}
+
+.terrain-bonus {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(138,106,170,0.8);
+    color: white;
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.card {
+    width: 100px;
+    height: 100px;
+    border: 3px solid black;
+    border-radius: 10px;
+    position: relative;
+    cursor: grab;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.card:active {
+    cursor: grabbing;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+}
+
+.player { background: linear-gradient(135deg, #5b7fa8 0%, #4a6a8a 100%); }
+.ai { background: linear-gradient(135deg, #a85b5b 0%, #8a4a4a 100%); }
+
+/* ELEMENTOS */
+.element-fire { 
+    border-color: #ff4444 !important; 
+    box-shadow: 0 0 20px rgba(255,68,68,0.7), inset 0 0 20px rgba(255,68,68,0.2);
+    border-width: 4px !important;
+}
+.element-water { 
+    border-color: #4444ff !important; 
+    box-shadow: 0 0 20px rgba(68,68,255,0.7), inset 0 0 20px rgba(68,68,255,0.2);
+    border-width: 4px !important;
+}
+.element-earth { 
+    border-color: #44ff44 !important; 
+    box-shadow: 0 0 20px rgba(68,255,68,0.7), inset 0 0 20px rgba(68,255,68,0.2);
+    border-width: 4px !important;
+}
+
+.element-icon {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 30px;
+    pointer-events: none;
+    filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
+}
+
+.hidden {
+    background: linear-gradient(135deg, #333 0%, #222 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+}
+
+.num {
+    position: absolute;
+    font-weight: bold;
+    font-size: 16px;
+    background: rgba(0,0,0,0.7);
+    padding: 4px 4px;
+    border-radius: 5px;
+    min-width: 25px;
+    text-align: center;
+}
+
+.top { top: 5px; left: 50%; transform: translateX(-50%); }
+.bottom { bottom: 5px; left: 50%; transform: translateX(-50%); }
+.left { left: 5px; top: 50%; transform: translateY(-50%); }
+.right { right: 5px; top: 50%; transform: translateY(-50%); }
+
+/* INDICADOR DE NÍVEL */
+.level-indicator {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: gold;
+    color: black;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 50%;
+    font-weight: bold;
+    display: none;
+}
+
+.card.evolved .level-indicator {
+    display: block;
+}
+
+/* HABILIDADES ESPECIAIS */
+.ability-icon {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    background: rgba(255,215,0,0.9);
+    color: black;
+    font-size: 16px;
+    padding: 1px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.ability-cooldown {
+    opacity: 0.3;
+    background: gray;
+}
+
+.hand {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    min-height: 120px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin: 5px 0;
+}
+
+button {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+/* MODAL */
+#modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#modalContent {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border: 4px solid gold;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    text-align: center;
+    animation: slideIn 0.3s ease;
+    max-height: 85vh;
+    overflow-y: auto;
+    max-width: 90vw;
+}
+
+#modalContent::-webkit-scrollbar {
+    width: 10px;
+}
+
+#modalContent::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+}
+
+#modalContent::-webkit-scrollbar-thumb {
+    background: gold;
+    border-radius: 10px;
+}
+
+#modalContent::-webkit-scrollbar-thumb:hover {
+    background: #ffd700;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+#modalContent h2 {
+    margin: 0 0 20px 0;
+    font-size: 2.5em;
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    padding: 10px 0;
+    z-index: 10;
+}
+
+#modalContent button {
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin-top: 20px;
+    padding: 12px 24px;
+    z-index: 10;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+}
+
+#modalStats {
+    margin: 20px 0;
+    font-size: 1.2em;
+    line-height: 1.8;
+}
+
+/* ANIMAÇÕES DE COMBATE */
+@keyframes battle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.battling {
+    animation: battle 0.3s ease;
+}
+
+/* COMBO INDICATOR */
+#comboIndicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    font-weight: bold;
+    color: gold;
+    text-shadow: 0 0 20px rgba(255,215,0,0.8);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+}
+
+#comboIndicator.show {
+    opacity: 1;
+    animation: comboAnim 1s ease;
+}
+
+@keyframes comboAnim {
+    0% { transform: translate(-50%, -50%) scale(0.5); }
+    50% { transform: translate(-50%, -50%) scale(1.2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* TUTORIAL */
+.tutorial {
+    max-width: 600px;
+    text-align: left;
+    line-height: 1.6;
+    margin: 20px 0;
+}
+
+.tutorial h3 {
+    color: gold;
+    margin: 15px 0 10px 0;
+}
+
+.tutorial ul {
+    margin-left: 20px;
+}
+
+.tutorial li {
+    margin: 5px 0;
 }
 </style>
 </head>
 <body>
 
-<h2>Quadro de Batalha</h2>
+<h1>⚔️ Quadro de Batalha: Edição Suprema ⚔️</h1>
 
-<div id="game">
-<div id="aiHand" class="hand"></div>
-<div id="board"></div>
-<div id="playerHand" class="hand"></div>
-<button onclick="restart()">Reiniciar</button>
+<div id="gameContainer">
+    <div id="elementCircle">
+        <svg viewBox="0 0 240 240" width="240" height="240">
+            <!-- Círculo de fundo -->
+            <circle cx="120" cy="120" r="100" fill="rgba(0,0,0,0.4)" stroke="gold" stroke-width="4" stroke-dasharray="5,5"/>
+            
+            <!-- Setas circulares -->
+            <defs>
+                <marker id="arrowhead" markerWidth="14" markerHeight="14" refX="11" refY="4" orient="auto">
+                    <polygon points="0 0, 12 4, 0 8" fill="gold" />
+                </marker>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+            
+            <!-- Seta Fogo -> Terra (direita, descendo) -->
+            <path d="M 155 60 Q 190 95, 168 140" stroke="gold" stroke-width="5" fill="none" 
+                  marker-end="url(#arrowhead)" class="arrow-path" filter="url(#glow)"/>
+            
+            <!-- Seta Terra -> Água (embaixo, indo pra esquerda) -->
+            <path d="M 142 168 Q 120 195, 72 168" stroke="gold" stroke-width="5" fill="none" 
+                  marker-end="url(#arrowhead)" class="arrow-path" filter="url(#glow)"/>
+            
+            <!-- Seta Água -> Fogo (esquerda, subindo) -->
+            <path d="M 60 140 Q 40 95, 72 60" stroke="gold" stroke-width="5" fill="none" 
+                  marker-end="url(#arrowhead)" class="arrow-path" filter="url(#glow)"/>
+            
+            <!-- Texto "+2" nas setas com fundo -->
+            <circle cx="175" cy="100" r="14" fill="rgba(0,0,0,0.8)" stroke="gold" stroke-width="2"/>
+            <text x="175" y="105" fill="gold" font-size="16" font-weight="bold" text-anchor="middle">+2</text>
+            
+            <circle cx="107" cy="185" r="14" fill="rgba(0,0,0,0.8)" stroke="gold" stroke-width="2"/>
+            <text x="107" y="190" fill="gold" font-size="16" font-weight="bold" text-anchor="middle">+2</text>
+            
+            <circle cx="47" cy="100" r="14" fill="rgba(0,0,0,0.8)" stroke="gold" stroke-width="2"/>
+            <text x="47" y="105" fill="gold" font-size="16" font-weight="bold" text-anchor="middle">+2</text>
+        </svg>
+        
+        <!-- Nós dos elementos -->
+        <div class="circle-element fire-node" style="top: 5px; left: 50%; transform: translateX(-50%);">
+            <div class="element-icon-circle">🔥</div>
+            <div class="element-label">FOGO</div>
+        </div>
+        
+        <div class="circle-element earth-node" style="bottom: 5px; right: 25px;">
+            <div class="element-icon-circle">🌍</div>
+            <div class="element-label">TERRA</div>
+        </div>
+        
+        <div class="circle-element water-node" style="bottom: 5px; left: 25px;">
+            <div class="element-icon-circle">💧</div>
+            <div class="element-label">ÁGUA</div>
+        </div>
+    </div>
+
+    <div id="gameArea">
+        <div id="gameInfo">
+            <div class="info-item">
+                <span>🎯 Turno:</span>
+                <span id="turnDisplay">Jogador</span>
+            </div>
+            <div class="info-item">
+                <span>⚡ Energia:</span>
+                <span id="energyDisplay">0</span>
+            </div>
+            <div class="info-item">
+                <span>🔥 Combo:</span>
+                <span id="comboDisplay">0x</span>
+            </div>
+        </div>
+
+        <div id="game">
+            <div id="aiHand" class="hand"></div>
+            <div id="board"></div>
+            <div id="playerHand" class="hand"></div>
+            
+            <div class="controls">
+                <button onclick="restart()">🔄 Reiniciar</button>
+                <button onclick="showTutorial()">📖 Como Jogar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
+<div id="comboIndicator"></div>
+
 <div id="modal">
-  <div id="modalContent">
-    <h2 id="modalText"></h2>
-    <button onclick="restart()">Jogar novamente</button>
-  </div>
+    <div id="modalContent">
+        <h2 id="modalText"></h2>
+        <div id="modalStats"></div>
+        <button onclick="restart()">🎮 Jogar Novamente</button>
+    </div>
 </div>
 
 <script>
-const board=document.getElementById("board");
-const playerHand=document.getElementById("playerHand");
-const aiHand=document.getElementById("aiHand");
-const modal=document.getElementById("modal");
-const modalText=document.getElementById("modalText");
+const board = document.getElementById("board");
+const playerHand = document.getElementById("playerHand");
+const aiHand = document.getElementById("aiHand");
+const modal = document.getElementById("modal");
+const modalText = document.getElementById("modalText");
+const modalStats = document.getElementById("modalStats");
+const turnDisplay = document.getElementById("turnDisplay");
+const energyDisplay = document.getElementById("energyDisplay");
+const comboDisplay = document.getElementById("comboDisplay");
+const comboIndicator = document.getElementById("comboIndicator");
 
-let cells=[];
-let playerCards=[];
-let aiCards=[];
-let turn="player";
+let cells = [];
+let playerCards = [];
+let aiCards = [];
+let turn = "player";
+let playerEnergy = 0;
+let aiEnergy = 0;
+let comboCount = 0;
+let specialTerrain = null;
 
-function randCard(owner){
+const ELEMENTS = ["fire", "water", "earth"];
+const ELEMENT_ICONS = { fire: "🔥", water: "💧", earth: "🌍" };
+const ELEMENT_ADVANTAGE = {
+    fire: "earth",
+    water: "fire",
+    earth: "water"
+};
+
+const ABILITIES = [
+    { name: "teleport", icon: "🌀", desc: "Troca com carta adjacente", cost: 3 },
+    { name: "shield", icon: "🛡️", desc: "+2 em todos os lados por 1 turno", cost: 2 },
+    { name: "blast", icon: "💥", desc: "Dano em área 3x3", cost: 4 },
+    { name: "heal", icon: "❤️", desc: "Restaura carta ao estado original", cost: 2 },
+    { name: "boost", icon: "⚡", desc: "+3 em um lado aleatório", cost: 2 }
+];
+
+function randCard(owner) {
+    const element = ELEMENTS[Math.floor(Math.random() * ELEMENTS.length)];
+    const hasAbility = Math.random() < 0.3; // 30% chance de habilidade
+    
     return {
-        top:Math.ceil(Math.random()*5),
-        right:Math.ceil(Math.random()*5),
-        bottom:Math.ceil(Math.random()*5),
-        left:Math.ceil(Math.random()*5),
-        owner
+        top: Math.ceil(Math.random() * 5),
+        right: Math.ceil(Math.random() * 5),
+        bottom: Math.ceil(Math.random() * 5),
+        left: Math.ceil(Math.random() * 5),
+        owner,
+        element,
+        ability: hasAbility ? ABILITIES[Math.floor(Math.random() * ABILITIES.length)] : null,
+        abilityCooldown: 0,
+        wins: 0,
+        evolved: false
     };
 }
 
-function renderCard(el, card, hidden=false){
-    el.innerHTML="";
-    if(hidden){
+function renderCard(el, card, hidden = false, buffedSides = {}) {
+    el.innerHTML = "";
+    
+    if (hidden) {
         el.classList.add("hidden");
-        el.innerHTML="🛡";
-    }else{
-        el.classList.remove("hidden");
-        el.innerHTML=`
-        <div class="num top">${card.top}</div>
-        <div class="num right">${card.right}</div>
-        <div class="num bottom">${card.bottom}</div>
-        <div class="num left">${card.left}</div>`;
+        el.innerHTML = "🛡️";
+        return;
+    }
+    
+    el.classList.remove("hidden");
+    el.classList.add(`element-${card.element}`);
+    
+    // Ícone do elemento
+    const elemIcon = document.createElement("div");
+    elemIcon.className = "element-icon";
+    elemIcon.innerHTML = ELEMENT_ICONS[card.element];
+    el.appendChild(elemIcon);
+    
+    // Números das cartas com indicação de buff
+    const bonus = getTerrainBonus(el);
+    const sides = ['top', 'right', 'bottom', 'left'];
+    
+    sides.forEach(side => {
+        const baseValue = card[side];
+        const terrainBonus = bonus.includes(side) ? 1 : 0;
+        const elementBonus = buffedSides[side] || 0;
+        const totalValue = baseValue + terrainBonus + elementBonus;
+        const hasBuff = terrainBonus > 0 || elementBonus > 0;
+        
+        const numEl = document.createElement("div");
+        numEl.className = `num ${side}`;
+        numEl.innerHTML = totalValue;
+        if (hasBuff) {
+            numEl.style.color = "#00ff00";
+            numEl.style.fontWeight = "bold";
+            numEl.style.textShadow = "0 0 5px #00ff00";
+        }
+        el.appendChild(numEl);
+    });
+    
+    // Indicador de nível
+    if (card.evolved) {
+        const level = document.createElement("div");
+        level.className = "level-indicator";
+        level.innerHTML = "★";
+        el.appendChild(level);
+        el.classList.add("evolved");
+    }
+    
+    // Ícone de habilidade
+    if (card.ability) {
+        const abilityEl = document.createElement("div");
+        abilityEl.className = "ability-icon";
+        if (card.abilityCooldown > 0) {
+            abilityEl.classList.add("ability-cooldown");
+            abilityEl.innerHTML = card.abilityCooldown;
+        } else {
+            abilityEl.innerHTML = card.ability.icon;
+        }
+        abilityEl.title = card.ability.desc;
+        abilityEl.onclick = (e) => {
+            e.stopPropagation();
+            useAbility(el, card);
+        };
+        el.appendChild(abilityEl);
     }
 }
 
-function makeCard(c, hidden=false){
-    let d=document.createElement("div");
-    d.className="card "+c.owner;
-    d.dataset.data=JSON.stringify(c);
-    renderCard(d,c,hidden);
+function getTerrainBonus(cardEl) {
+    const cell = cardEl.parentElement;
+    if (!cell || !cell.classList.contains("special-terrain")) return [];
+    
+    const idx = cells.indexOf(cell);
+    const bonusTypes = [['top', 'bottom'], ['left', 'right'], ['top', 'left'], ['bottom', 'right']];
+    return bonusTypes[idx % bonusTypes.length];
+}
 
-    if(c.owner==="player"){
-        d.draggable=true;
-        d.ondragstart=e=>e.dataTransfer.setData("id",d.id);
+function makeCard(c, hidden = false) {
+    let d = document.createElement("div");
+    d.className = "card " + c.owner;
+    d.dataset.data = JSON.stringify(c);
+    renderCard(d, c, hidden);
+
+    if (c.owner === "player" && !hidden) {
+        d.draggable = true;
+        d.ondragstart = e => {
+            e.dataTransfer.setData("id", d.id);
+            d.style.opacity = "0.5";
+        };
+        d.ondragend = () => d.style.opacity = "1";
     }
     return d;
 }
 
-function createBoard(){
-    board.innerHTML="";
-    cells=[];
-    for(let i=0;i<9;i++){
-        let c=document.createElement("div");
-        c.className="cell";
-        c.ondragover=e=>e.preventDefault();
-        c.ondrop=e=>drop(e,c);
+function createBoard() {
+    board.innerHTML = "";
+    cells = [];
+    
+    // Escolhe células especiais
+    const specialCells = [];
+    while (specialCells.length < 2) {
+        const idx = Math.floor(Math.random() * 9);
+        if (!specialCells.includes(idx) && idx !== 4) { // Não no centro
+            specialCells.push(idx);
+        }
+    }
+    
+    for (let i = 0; i < 9; i++) {
+        let c = document.createElement("div");
+        c.className = "cell";
+        
+        if (specialCells.includes(i)) {
+            c.classList.add("special-terrain");
+            const bonus = document.createElement("div");
+            bonus.className = "terrain-bonus";
+            const bonusTypes = [['⬆️⬇️'], ['⬅️➡️'], ['⬆️⬅️'], ['⬇️➡️']];
+            bonus.innerHTML = bonusTypes[i % bonusTypes.length][0];
+            c.appendChild(bonus);
+        }
+        
+        c.ondragover = e => e.preventDefault();
+        c.ondrop = e => drop(e, c);
         board.appendChild(c);
         cells.push(c);
     }
 }
 
-function drop(e,cell){
-    if(turn!=="player")return;
-    if(cell.firstChild)return;
+function drop(e, cell) {
+    if (turn !== "player") return;
+    
+    // Verifica se a célula já tem uma carta (ignora terrain-bonus)
+    const existingCard = Array.from(cell.children).find(child => child.classList.contains('card'));
+    if (existingCard) return;
 
-    let card=document.getElementById(e.dataTransfer.getData("id"));
-    card.draggable=false;
-    card.ondragstart=null;
+    let card = document.getElementById(e.dataTransfer.getData("id"));
+    if (!card) return; // Proteção adicional
+    
+    card.draggable = false;
+    card.ondragstart = null;
+    card.style.opacity = "1";
+    
+    // Remove a carta da mão do jogador
+    card.remove();
+    
+    // Adiciona carta à célula (preservando terrain-bonus se existir)
     cell.appendChild(card);
 
-    resolveBattle(cell,card);
+    const captured = resolveBattle(cell, card);
+    
+    // Sistema de combo entre rodadas
+    if (captured > 0) {
+        comboCount++;
+        showCombo(captured);
+        playerEnergy += captured;
+        updateUI();
+    } else {
+        // Reseta combo se não capturar nada
+        if (comboCount > 0) {
+            comboIndicator.innerHTML = `💔 Combo Perdido!`;
+            comboIndicator.style.color = "#ff4444";
+            comboIndicator.classList.add("show");
+            setTimeout(() => {
+                comboIndicator.classList.remove("show");
+                comboIndicator.style.color = "gold";
+            }, 1000);
+        }
+        comboCount = 0;
+        updateUI();
+    }
 
-    checkEnd(); // <<< AQUI ESTÁ A CORREÇÃO
+    checkEnd();
+    if (turn === "end") return;
 
-    if(turn==="end") return;
+    // Reduz cooldowns
+    playerCards.forEach(c => {
+        if (c.abilityCooldown > 0) c.abilityCooldown--;
+    });
 
-    turn="ai";
-    setTimeout(aiPlay,600);
+    turn = "ai";
+    turnDisplay.innerText = "IA";
+    setTimeout(aiPlay, 800);
 }
 
+function resolveBattle(cell, cardEl) {
+    let idx = cells.indexOf(cell);
+    let x = idx % 3, y = Math.floor(idx / 3);
+    let c = JSON.parse(cardEl.dataset.data);
+    let captured = 0;
+    
+    // Calcula bônus elementais para o atacante
+    const attackerBuffs = {};
 
-function resolveBattle(cell,cardEl){
-    let idx=cells.indexOf(cell);
-    let x=idx%3,y=Math.floor(idx/3);
-    let c=JSON.parse(cardEl.dataset.data);
+    cardEl.classList.add("battling");
+    setTimeout(() => cardEl.classList.remove("battling"), 300);
 
-    function fight(nei,side,op){
-        if(!nei.firstChild)return;
-        let otherEl=nei.firstChild;
-        let o=JSON.parse(otherEl.dataset.data);
+    function fight(nei, side, op) {
+        // Busca carta na célula vizinha (ignora terrain-bonus)
+        const otherEl = Array.from(nei.children).find(child => child.classList.contains('card'));
+        if (!otherEl) return;
+        
+        let o = JSON.parse(otherEl.dataset.data);
+        
+        if (o.owner === c.owner) return;
 
-        if(c[side]>o[op]){
-            o.owner=c.owner;
-            otherEl.className="card "+o.owner;
-            otherEl.dataset.data=JSON.stringify(o);
-            renderCard(otherEl,o,false);
+        let myValue = c[side];
+        let oppValue = o[op];
+        
+        // Bônus de terreno
+        const myBonus = getTerrainBonus(cardEl);
+        const oppBonus = getTerrainBonus(otherEl);
+        
+        if (myBonus.includes(side)) myValue++;
+        if (oppBonus.includes(op)) oppValue++;
+        
+        // Vantagem elemental - APENAS para o atacante
+        let elementBonus = 0;
+        if (ELEMENT_ADVANTAGE[c.element] === o.element) {
+            myValue += 2;
+            elementBonus = 2;
+            attackerBuffs[side] = (attackerBuffs[side] || 0) + elementBonus;
+        }
+
+        if (myValue > oppValue) {
+            captured++;
+            o.owner = c.owner;
+            otherEl.className = "card " + o.owner + " element-" + o.element;
+            otherEl.dataset.data = JSON.stringify(o);
+            renderCard(otherEl, o, false);
+            
+            otherEl.classList.add("battling");
+            setTimeout(() => otherEl.classList.remove("battling"), 300);
+            
+            // Sistema de evolução
+            c.wins++;
+            if (c.wins >= 2 && !c.evolved) {
+                c.evolved = true;
+                c.top++; c.right++; c.bottom++; c.left++;
+            }
         }
     }
 
-    if(x>0)fight(cells[idx-1],"left","right");
-    if(x<2)fight(cells[idx+1],"right","left");
-    if(y>0)fight(cells[idx-3],"top","bottom");
-    if(y<2)fight(cells[idx+3],"bottom","top");
+    if (x > 0) fight(cells[idx - 1], "left", "right");
+    if (x < 2) fight(cells[idx + 1], "right", "left");
+    if (y > 0) fight(cells[idx - 3], "top", "bottom");
+    if (y < 2) fight(cells[idx + 3], "bottom", "top");
+    
+    cardEl.dataset.data = JSON.stringify(c);
+    
+    // Re-renderiza a carta do atacante com os buffs visuais
+    renderCard(cardEl, c, false, attackerBuffs);
+    
+    // Remove os buffs visuais após 1 segundo
+    setTimeout(() => {
+        renderCard(cardEl, c, false);
+    }, 1000);
+    
+    return captured;
 }
 
-function aiPlay(){
-    if(aiCards.length===0)return;
+function useAbility(cardEl, card) {
+    if (turn !== "player") return;
+    if (card.abilityCooldown > 0) {
+        alert("Habilidade em cooldown!");
+        return;
+    }
+    
+    const cost = card.ability.cost;
+    if (playerEnergy < cost) {
+        alert(`Energia insuficiente! Precisa de ${cost} energia.`);
+        return;
+    }
+    
+    playerEnergy -= cost;
+    card.abilityCooldown = 2;
+    
+    const cell = cardEl.parentElement;
+    const idx = cells.indexOf(cell);
+    
+    switch(card.ability.name) {
+        case "teleport":
+            // Troca com carta adjacente
+            const neighbors = [];
+            const x = idx % 3, y = Math.floor(idx / 3);
+            if (x > 0) neighbors.push(cells[idx - 1]);
+            if (x < 2) neighbors.push(cells[idx + 1]);
+            if (y > 0) neighbors.push(cells[idx - 3]);
+            if (y < 2) neighbors.push(cells[idx + 3]);
+            
+            const validNeighbors = neighbors.filter(n => {
+                const hasCard = Array.from(n.children).find(child => child.classList.contains('card'));
+                return hasCard !== undefined;
+            });
+            
+            if (validNeighbors.length > 0) {
+                const target = validNeighbors[Math.floor(Math.random() * validNeighbors.length)];
+                const sourceCard = Array.from(cell.children).find(child => child.classList.contains('card'));
+                const targetCard = Array.from(target.children).find(child => child.classList.contains('card'));
+                
+                // Clona as cartas
+                const tempSource = sourceCard.cloneNode(true);
+                const tempTarget = targetCard.cloneNode(true);
+                
+                // Remove cartas originais
+                sourceCard.remove();
+                targetCard.remove();
+                
+                // Adiciona cartas nas posições trocadas
+                cell.appendChild(tempTarget);
+                target.appendChild(tempSource);
+            }
+            break;
+            
+        case "shield":
+            card.top += 2; card.right += 2; card.bottom += 2; card.left += 2;
+            setTimeout(() => {
+                card.top -= 2; card.right -= 2; card.bottom -= 2; card.left -= 2;
+                cardEl.dataset.data = JSON.stringify(card);
+                renderCard(cardEl, card);
+            }, 1000);
+            break;
+            
+        case "blast":
+            // Dano em área
+            resolveBattle(cell, cardEl);
+            break;
+            
+        case "boost":
+            const sides = ['top', 'right', 'bottom', 'left'];
+            const randomSide = sides[Math.floor(Math.random() * sides.length)];
+            card[randomSide] += 3;
+            break;
+    }
+    
+    cardEl.dataset.data = JSON.stringify(card);
+    renderCard(cardEl, card);
+    updateUI();
+}
 
-    let bestMove=null;
+function showCombo(count) {
+    if (comboCount === 1) {
+        comboIndicator.innerHTML = `${count}x CAPTURA! ⚔️`;
+    } else {
+        comboIndicator.innerHTML = `${comboCount}x COMBO! 🔥<br><small>+${count} captura(s)</small>`;
+    }
+    comboIndicator.classList.add("show");
+    setTimeout(() => comboIndicator.classList.remove("show"), 1500);
+}
 
-    aiCards.forEach((card,ci)=>{
-        cells.forEach(cell=>{
-            if(cell.firstChild)return;
-            let idx=cells.indexOf(cell);
-            let x=idx%3,y=Math.floor(idx/3);
-            let score=0;
+function aiPlay() {
+    if (aiCards.length === 0) return;
 
-            function test(nei,side,op){
-                if(!nei.firstChild)return;
-                let o=JSON.parse(nei.firstChild.dataset.data);
-                if(card[side]>o[op] && o.owner==="player") score++;
+    let bestMove = null;
+    let maxScore = -999;
+
+    aiCards.forEach((card, ci) => {
+        cells.forEach(cell => {
+            // Verifica se já tem carta na célula
+            const existingCard = Array.from(cell.children).find(child => child.classList.contains('card'));
+            if (existingCard) return;
+            
+            let idx = cells.indexOf(cell);
+            let x = idx % 3, y = Math.floor(idx / 3);
+            let score = 0;
+
+            function test(nei, side, op) {
+                const otherEl = Array.from(nei.children).find(child => child.classList.contains('card'));
+                if (!otherEl) return;
+                
+                let o = JSON.parse(otherEl.dataset.data);
+                
+                let myValue = card[side];
+                let oppValue = o[op];
+                
+                // Considera vantagem elemental - APENAS para o atacante (IA)
+                if (ELEMENT_ADVANTAGE[card.element] === o.element) {
+                    myValue += 2;
+                }
+                
+                if (myValue > oppValue && o.owner === "player") {
+                    score += 2;
+                } else if (myValue <= oppValue && o.owner === "ai") {
+                    score -= 1;
+                }
             }
 
-            if(x>0)test(cells[idx-1],"left","right");
-            if(x<2)test(cells[idx+1],"right","left");
-            if(y>0)test(cells[idx-3],"top","bottom");
-            if(y<2)test(cells[idx+3],"bottom","top");
+            if (x > 0) test(cells[idx - 1], "left", "right");
+            if (x < 2) test(cells[idx + 1], "right", "left");
+            if (y > 0) test(cells[idx - 3], "top", "bottom");
+            if (y < 2) test(cells[idx + 3], "bottom", "top");
+            
+            // Bônus por célula especial
+            if (cell.classList.contains("special-terrain")) score += 1;
 
-            if(score>0 && (!bestMove || score>bestMove.score)){
-                bestMove={cardIndex:ci,cell,score};
+            if (score > maxScore) {
+                maxScore = score;
+                bestMove = { cardIndex: ci, cell, score };
             }
         });
     });
 
     let move;
-    if(bestMove){
-        move=bestMove;
-    }else{
-        let empty=cells.filter(c=>!c.firstChild);
-        move={cardIndex:0,cell:empty[Math.floor(Math.random()*empty.length)]};
+    if (bestMove && bestMove.score > 0) {
+        move = bestMove;
+    } else {
+        // Filtra células que não têm carta
+        let empty = cells.filter(c => {
+            const hasCard = Array.from(c.children).find(child => child.classList.contains('card'));
+            return !hasCard;
+        });
+        if (empty.length === 0) return;
+        move = { cardIndex: 0, cell: empty[Math.floor(Math.random() * empty.length)] };
     }
 
-    let cardData=aiCards[move.cardIndex];
-    let cardEl=makeCard(cardData,false);
-    cardEl.draggable=false;
+    let cardData = aiCards[move.cardIndex];
+    let cardEl = makeCard(cardData, false);
+    cardEl.draggable = false;
+    
+    // Adiciona carta à célula
     move.cell.appendChild(cardEl);
-    resolveBattle(move.cell,cardEl);
+    
+    resolveBattle(move.cell, cardEl);
 
-    aiCards.splice(move.cardIndex,1);
+    aiCards.splice(move.cardIndex, 1);
     aiHand.removeChild(aiHand.children[move.cardIndex]);
 
-    turn="player";
+    // Reduz cooldowns da IA
+    aiCards.forEach(c => {
+        if (c.abilityCooldown > 0) c.abilityCooldown--;
+    });
+
+    turn = "player";
+    turnDisplay.innerText = "Jogador";
+    comboCount = 0;
     checkEnd();
 }
 
-function deal(){
-    playerCards=[];
-    aiCards=[];
-    playerHand.innerHTML="";
-    aiHand.innerHTML="";
+function deal() {
+    playerCards = [];
+    aiCards = [];
+    playerHand.innerHTML = "";
+    aiHand.innerHTML = "";
 
-    for(let i=0;i<5;i++){
+    for (let i = 0; i < 5; i++) {
         playerCards.push(randCard("player"));
         aiCards.push(randCard("ai"));
     }
 
-    playerCards.forEach((c,i)=>{
-        let d=makeCard(c,false);
-        d.id="p"+i;
+    playerCards.forEach((c, i) => {
+        let d = makeCard(c, false);
+        d.id = "p" + i;
         playerHand.appendChild(d);
     });
 
-    aiCards.forEach((c,i)=>{
-        let d=makeCard(c,true);
+    aiCards.forEach((c, i) => {
+        let d = makeCard(c, true);
         aiHand.appendChild(d);
     });
 }
 
-function checkEnd(){
-    if(cells.every(c=>c.firstChild)){
-        let p=0,a=0;
-        cells.forEach(c=>{
-            let d=JSON.parse(c.firstChild.dataset.data);
-            d.owner==="player"?p++:a++;
+function checkEnd() {
+    // Conta células com cartas
+    const occupiedCells = cells.filter(c => {
+        const hasCard = Array.from(c.children).find(child => child.classList.contains('card'));
+        return hasCard !== undefined;
+    });
+    
+    if (occupiedCells.length === 9) {
+        let p = 0, a = 0;
+        cells.forEach(c => {
+            const cardEl = Array.from(c.children).find(child => child.classList.contains('card'));
+            if (cardEl) {
+                let d = JSON.parse(cardEl.dataset.data);
+                d.owner === "player" ? p++ : a++;
+            }
         });
 
-        if(p>a) showModal("🏆 Você venceu!");
-        else if(a>p) showModal("💀 Você perdeu!");
-        else showModal("⚖ Empate!");
-        turn="end";
+        let message = "";
+        let stats = "";
+        
+        if (p > a) {
+            message = "🏆 VITÓRIA ÉPICA! 🏆";
+            stats = `<div>Você: ${p} | IA: ${a}</div><div>Energia Final: ${playerEnergy}⚡</div>`;
+        } else if (a > p) {
+            message = "💀 Derrota... Tente Novamente! 💀";
+            stats = `<div>Você: ${p} | IA: ${a}</div>`;
+        } else {
+            message = "⚖️ EMPATE! Batalha Equilibrada! ⚖️";
+            stats = `<div>Você: ${p} | IA: ${a}</div>`;
+        }
+        
+        showModal(message, stats);
+        turn = "end";
     }
 }
 
-function showModal(text){
-    modalText.innerText=text;
-    modal.style.display="flex";
+function showModal(text, stats = "") {
+    modalText.innerText = text;
+    modalStats.innerHTML = stats;
+    modal.style.display = "flex";
 }
 
-function restart(){
-    modal.style.display="none";
+function updateUI() {
+    energyDisplay.innerText = playerEnergy;
+    comboDisplay.innerText = comboCount + "x";
+}
+
+function showTutorial() {
+    const tutorialHTML = `
+        <div class="tutorial">
+            <h3>🎯 Objetivo</h3>
+            <p>Conquiste mais células do tabuleiro que a IA!</p>
+            
+            <h3>🎮 Como Jogar</h3>
+            <ul>
+                <li>Arraste suas cartas para o tabuleiro</li>
+                <li>Cartas com números maiores capturam cartas adjacentes</li>
+                <li>O atacante compara seu número com o da carta vizinha</li>
+            </ul>
+            
+            <h3>🔥💧🌍 Sistema de Elementos</h3>
+            <p><strong>Veja o diagrama circular à esquerda do tabuleiro!</strong></p>
+            <ul>
+                <li><strong>🔥 Fogo</strong> vence 🌍 Terra (+2 de bônus no ataque)</li>
+                <li><strong>🌍 Terra</strong> vence 💧 Água (+2 de bônus no ataque)</li>
+                <li><strong>💧 Água</strong> vence 🔥 Fogo (+2 de bônus no ataque)</li>
+                <li>⚠️ <em>Apenas o atacante recebe o bônus!</em></li>
+                <li>💚 Números com bônus ficam VERDES durante o ataque</li>
+            </ul>
+            
+            <h3>⚡ Habilidades Especiais</h3>
+            <ul>
+                <li>🌀 <strong>Teleporte</strong> (3⚡): Troca posição com carta adjacente</li>
+                <li>🛡️ <strong>Escudo</strong> (2⚡): +2 em todos os lados temporário</li>
+                <li>💥 <strong>Explosão</strong> (4⚡): Ataque em área expandida</li>
+                <li>⚡ <strong>Boost</strong> (2⚡): +3 permanente em um lado</li>
+                <li>Clique no ícone da habilidade para ativar</li>
+                <li>Ganhe energia ⚡ capturando cartas inimigas</li>
+            </ul>
+            
+            <h3>⭐ Sistema de Evolução</h3>
+            <ul>
+                <li>Capture 2 cartas com a mesma carta para evoluir</li>
+                <li>Cartas evoluídas ganham +1 em TODOS os lados</li>
+                <li>Estrela dourada ★ indica carta evoluída</li>
+            </ul>
+            
+            <h3>🟣 Terreno Especial</h3>
+            <ul>
+                <li>Células roxas brilhantes dão +1 em lados específicos</li>
+                <li>Ícones mostram quais lados ganham bônus (⬆️⬇️ ou ⬅️➡️)</li>
+                <li>💚 Números com bônus de terreno ficam verdes</li>
+                <li>Posicione estrategicamente!</li>
+            </ul>
+            
+            <h3>🔥 Sistema de Combo Consecutivo</h3>
+            <ul>
+                <li>Capture cartas em <strong>turnos consecutivos</strong> para manter o combo</li>
+                <li>Cada captura aumenta o multiplicador de combo</li>
+                <li>Ganhe energia extra por cada captura</li>
+                <li>💔 Se você não capturar nada, o combo reseta!</li>
+                <li>Planeje suas jogadas para combos longos</li>
+            </ul>
+            
+            <h3>💡 Dicas Estratégicas</h3>
+            <ul>
+                <li>Use elementos a seu favor - sempre ataque com vantagem</li>
+                <li>Proteja cartas que estão perto de evoluir</li>
+                <li>Terrenos especiais podem virar uma batalha perdida</li>
+                <li>Mantenha combos longos para acumular energia</li>
+                <li>Guarde habilidades para momentos críticos</li>
+            </ul>
+        </div>
+    `;
+    
+    showModal("📖 Como Jogar", tutorialHTML);
+}
+
+function restart() {
+    modal.style.display = "none";
     createBoard();
     deal();
+    playerEnergy = 0;
+    aiEnergy = 0;
+    comboCount = 0;
+    updateUI();
 
-    // Cara ou coroa
+    // Cara ou coroa para decidir quem começa
     turn = Math.random() < 0.5 ? "player" : "ai";
+    turnDisplay.innerText = turn === "player" ? "Jogador" : "IA";
 
-    if(turn === "ai"){
-        setTimeout(aiPlay, 600);
+    if (turn === "ai") {
+        setTimeout(aiPlay, 800);
     }
 }
 
+// Inicializa o jogo
 restart();
 </script>
 </body>
